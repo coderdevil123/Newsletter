@@ -3,6 +3,12 @@ import { Subscriber } from '@/lib/models/Subscriber';
 
 export const dynamic = "force-dynamic"; // Ensure fresh data on each visit
 
+type SubscriberType = {
+  _id: string;
+  email: string;
+  subscribedAt: string;
+};
+
 export default async function Dashboard() {
   await connectToDB();
   const subscribers = await Subscriber.find().sort({ subscribedAt: -1 });
@@ -13,13 +19,17 @@ export default async function Dashboard() {
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white dark:bg-gray-900 rounded-lg shadow">
           <thead>
-            <tr className="bg-gray-100 dark:bg-gray-800 text-left">
-              <th className="px-6 py-3 text-sm font-semibold">Email</th>
-              <th className="px-6 py-3 text-sm font-semibold">Subscribed At</th>
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Email
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Subscribed At
+              </th>
             </tr>
           </thead>
           <tbody>
-            {subscribers.map((sub: any) => (
+            {subscribers.map((sub: SubscriberType) => (
               <tr key={sub._id} className="border-t border-gray-200 dark:border-gray-700">
                 <td className="px-6 py-4 text-sm">{sub.email}</td>
                 <td className="px-6 py-4 text-sm">

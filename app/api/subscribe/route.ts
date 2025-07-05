@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ message: 'Successfully subscribed!' });
-  } catch (err) {
-    return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 });
-  }
+  } catch {
+  return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 });
+}
 }
