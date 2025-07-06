@@ -4,13 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
-interface PixelData {
-  x: number;
-  y: number;
-  r: number;
-  color: string;
-}
-
 export function VanishInput({
   placeholders,
   onChange,
@@ -21,21 +14,39 @@ export function VanishInput({
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }) {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
+  const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(true);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const startAnimation = useCallback(() => {
-    intervalRef.current = setInterval(() => {
-      setCurrentPlaceholder((prev) => (prev + 1) % placeholders.length);
-    }, 3000);
+    const cyclePlaceholder = () => {
+      // Start the vanishing animation
+      setIsPlaceholderVisible(false);
+      
+      // Wait for the exit animation to complete (0.3s duration) before showing next placeholder
+      animationTimeoutRef.current = setTimeout(() => {
+        setCurrentPlaceholder((prev) => (prev + 1) % placeholders.length);
+        setIsPlaceholderVisible(true);
+      }, 300); // Match the exit animation duration
+    };
+
+    // Start the cycle - show first placeholder immediately, then cycle every 3 seconds
+    intervalRef.current = setInterval(cyclePlaceholder, 3000);
   }, [placeholders.length]);
 
   const handleVisibilityChange = useCallback(() => {
-    if (document.visibilityState !== "visible" && intervalRef.current) {
-      clearInterval(intervalRef.current); // Clear the interval when the tab is not visible
-      intervalRef.current = null;
+    if (document.visibilityState !== "visible") {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = null;
+      }
     } else if (document.visibilityState === "visible") {
-      startAnimation(); // Restart the interval when the tab becomes visible
+      startAnimation();
     }
   }, [startAnimation]);
 
@@ -47,12 +58,15 @@ export function VanishInput({
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [startAnimation, handleVisibilityChange]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const newDataRef = useRef<PixelData[]>([]);
+  const newDataRef = useRef<any[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
   const [animating, setAnimating] = useState(false);
@@ -77,7 +91,7 @@ export function VanishInput({
 
     const imageData = ctx.getImageData(0, 0, 800, 800);
     const pixelData = imageData.data;
-    const newData: PixelData[] = [];
+    const newData: any[] = [];
 
     for (let t = 0; t < 800; t++) {
       const i = 4 * t * 800;
@@ -91,14 +105,23 @@ export function VanishInput({
           newData.push({
             x: n,
             y: t,
-            r: 1,
-            color: `rgba(${pixelData[e]}, ${pixelData[e + 1]}, ${pixelData[e + 2]}, ${pixelData[e + 3]})`,
+            color: [
+              pixelData[e],
+              pixelData[e + 1],
+              pixelData[e + 2],
+              pixelData[e + 3],
+            ],
           });
         }
       }
     }
 
-    newDataRef.current = newData;
+    newDataRef.current = newData.map(({ x, y, color }) => ({
+      x,
+      y,
+      r: 1,
+      color: `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`,
+    }));
   }, [vanishingValue]);
 
   useEffect(() => {
@@ -262,7 +285,7 @@ export function VanishInput({
 
       <div className="absolute inset-0 flex items-center rounded-full pointer-events-none">
         <AnimatePresence mode="wait">
-          {!value && (
+          {!value && isPlaceholderVisible && (
             <motion.p
               initial={{
                 y: 5,
