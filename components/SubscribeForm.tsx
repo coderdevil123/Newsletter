@@ -1,40 +1,83 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 
-export default function SubscribeForm() {
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+export function VanishInput({
+  placeholder = "Enter your email",
+  onSubmit,
+  className,
+}: {
+  placeholder?: string;
+  onSubmit?: (value: string) => void;
+  className?: string;
+}) {
+  const [value, setValue] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage('');
+  const handleSubmit = () => {
+    if (value.trim() && onSubmit) {
+      onSubmit(value.trim());
+      setValue("");
+    }
+    };
+  
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") handleSubmit();
+    };
+  
+    return (
+      <div className={cn("w-full sm:w-96 space-y-2", className)}>
+        <motion.input
+          type="email"
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          whileFocus={{ scale: 1.05 }}
+          transition={{ duration: 0.3 }}
+          className={cn(
+            "w-full px-4 py-2 bg-black border border-neutral-800 text-white rounded-md outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-neutral-500"
+          )}
+        />
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={handleSubmit}
+          className="w-full py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition"
+        >
+          Subscribe
+        </motion.button>
+      </div>
+    );
+  }
 
-    const res = await fetch('/api/subscribe', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-      headers: { 'Content-Type': 'application/json' },
-    });
+export function SubscribeForm() {
+  const handleSubscribe = async (email: string) => {
+    try {
+      const res = await axios.post("/api/subscribe", { email });
 
-    const data = await res.json();
-    setMessage(data.message || data.error);
-    setEmail('');
+      if (res.status === 201) {
+        toast.success("Subscribed successfully!");
+      } else {
+        toast.error("Something went wrong.");
+      }
+    } catch (error) {
+      toast.error("Failed to subscribe. Try again.");
+    }
   };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        type="email"
-        required
-        value={email}
-        placeholder="Enter your email"
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full border px-4 py-2 rounded"
-      />
-      <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
-        Subscribe
-      </button>
-      {message && <p className="text-sm text-center text-gray-600">{message}</p>}
-    </form>
+    <VanishInput
+      placeholder="Enter your email"
+      onSubmit={handleSubscribe}
+      className="my-4"
+    />
   );
 }
+
+import React from "react";
+
+type SubscribeFormProps = {
+  className?: string;
+};
