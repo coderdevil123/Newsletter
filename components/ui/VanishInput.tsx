@@ -24,11 +24,11 @@ export function VanishInput({
       // Start the vanishing animation
       setIsPlaceholderVisible(false);
       
-      // Wait for the exit animation to complete (0.3s duration) before showing next placeholder
+      // Wait for the exit animation to complete (0.3s) + 7 seconds delay before showing next placeholder
       animationTimeoutRef.current = setTimeout(() => {
         setCurrentPlaceholder((prev) => (prev + 1) % placeholders.length);
         setIsPlaceholderVisible(true);
-      }, 300); // Match the exit animation duration
+      }, 7300); // 300ms for exit animation + 7000ms delay
     };
 
     // Start the cycle - show first placeholder immediately, then cycle every 3 seconds
@@ -66,7 +66,7 @@ export function VanishInput({
   }, [startAnimation, handleVisibilityChange]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const newDataRef = useRef<any[]>([]);
+  const newDataRef = useRef<Array<{x: number; y: number; r: number; color: string}>>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
   const [animating, setAnimating] = useState(false);
@@ -91,7 +91,7 @@ export function VanishInput({
 
     const imageData = ctx.getImageData(0, 0, 800, 800);
     const pixelData = imageData.data;
-    const newData: any[] = [];
+    const newData: Array<{x: number; y: number; color: number[]}> = [];
 
     for (let t = 0; t < 800; t++) {
       const i = 4 * t * 800;
@@ -212,7 +212,7 @@ export function VanishInput({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     vanishAndSubmit();
-    onSubmit && onSubmit(e);
+    onSubmit?.(e);
   };
   
   return (
@@ -234,7 +234,7 @@ export function VanishInput({
         onChange={(e) => {
           if (!animating) {
             setValue(e.target.value);
-            onChange && onChange(e);
+            onChange?.(e);
           }
         }}
         onKeyDown={handleKeyDown}
