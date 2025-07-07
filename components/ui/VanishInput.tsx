@@ -4,6 +4,19 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
+interface PixelData {
+  x: number;
+  y: number;
+  color: number[];
+}
+
+interface AnimationData {
+  x: number;
+  y: number;
+  r: number;
+  color: string;
+}
+
 export function VanishInput({
   placeholders,
   onChange,
@@ -66,7 +79,7 @@ export function VanishInput({
   }, [startAnimation, handleVisibilityChange]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const newDataRef = useRef<Array<{x: number; y: number; r: number; color: string}>>([]);
+  const newDataRef = useRef<AnimationData[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
   const [animating, setAnimating] = useState(false);
@@ -91,7 +104,7 @@ export function VanishInput({
 
     const imageData = ctx.getImageData(0, 0, 800, 800);
     const pixelData = imageData.data;
-    const newData: Array<{x: number; y: number; color: number[]}> = [];
+    const newData: PixelData[] = [];
 
     for (let t = 0; t < 800; t++) {
       const i = 4 * t * 800;
