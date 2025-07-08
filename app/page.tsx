@@ -16,9 +16,25 @@ export default function Home() {
     console.log("Input changed:", e.target.value);
   };
 
-  const handleSubmit = (email: string) => {
-    console.log("Subscribed:", email);
-  };
+  const handleSubmit = async (email: string) => {
+  console.log("Sending email to API:", email);
+
+  try {
+    const res = await fetch("/api/subscribe", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await res.json();
+    console.log("API Response:", data);
+  } catch (error) {
+    console.error("Error calling /api/subscribe:", error);
+  }
+};
+
 
   return (
     <div className="min-h-screen w-full bg-black relative flex flex-col items-center justify-center antialiased overflow-hidden">
