@@ -24,7 +24,7 @@ export function VanishInput({
 }: {
   placeholders: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (email: string) => void;
 }) {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
   const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(true);
@@ -225,7 +225,7 @@ export function VanishInput({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     vanishAndSubmit();
-    onSubmit?.(e);
+    onSubmit?.(inputRef.current?.value || "");
   };
   
   return (
