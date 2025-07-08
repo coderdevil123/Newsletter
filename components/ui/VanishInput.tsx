@@ -223,10 +223,17 @@ export function VanishInput({
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    vanishAndSubmit();
-    onSubmit?.(inputRef.current?.value || "");
-  };
+  e.preventDefault();
+  const currentEmail = inputRef.current?.value || "";
+
+  if (!currentEmail || !currentEmail.includes("@")) {
+    console.warn("⚠️ Invalid email not submitted:", currentEmail);
+    return;
+  }
+  onSubmit?.(currentEmail);  
+  vanishAndSubmit();         
+};
+
   
   return (
     <form
