@@ -194,45 +194,42 @@ export function VanishInput({
   };
 
   const vanishAndSubmit = () => {
-    setAnimating(true);
-    
-    // Capture the current value before clearing it
-    const currentValue = inputRef.current?.value || "";
-    
-    // Set the vanishing value for the animation
-    setVanishingValue(currentValue);
-    
-    // Clear the input text immediately
+  const currentValue = inputRef.current?.value || "";
+
+  setAnimating(true);
+  setVanishingValue(currentValue);
+
+  // DO NOT CLEAR RIGHT AWAY
+  setTimeout(() => {
     setValue("");
     if (inputRef.current) {
       inputRef.current.value = "";
     }
-    
-    // The draw function will be called automatically due to useEffect
-    // when vanishingValue changes, so we just need to start the animation
-    if (currentValue && inputRef.current) {
-      // Small delay to ensure the canvas is drawn before animation starts
-      setTimeout(() => {
-        const maxX = newDataRef.current.reduce(
-          (prev, current) => (current.x > prev ? current.x : prev),
-          0
-        );
-        animate(maxX);
-      }, 10);
-    }
-  };
+
+    const maxX = newDataRef.current.reduce(
+      (prev, current) => (current.x > prev ? current.x : prev),
+      0
+    );
+    animate(maxX);
+  }, 10); // Let canvas draw first
+};
+
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
+
   const currentEmail = inputRef.current?.value || "";
+  console.log("🟢 Email going to API:", currentEmail); // DEBUG THIS
 
   if (!currentEmail || !currentEmail.includes("@")) {
     console.warn("⚠️ Invalid email not submitted:", currentEmail);
     return;
   }
-  onSubmit?.(currentEmail);  
-  vanishAndSubmit();         
+
+  onSubmit?.(currentEmail); // API call
+  vanishAndSubmit();        // Animation
 };
+
 
   
   return (
